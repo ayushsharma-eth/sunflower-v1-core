@@ -3,19 +3,19 @@ pragma solidity >=0.5.0;
 import "./interfaces/IMarket.sol";
 import "./Product.sol";
 
-contract Storefront {
+contract Market {
 
     string public name;
     address public owner;
 
     constructor
     (
-        string memory _nameOfStorefront,
+        string memory _nameOfMarket,
         address _owner
     )
     public
     {
-        name = _nameOfStorefront;
+        name = _nameOfMarket;
         owner = _owner;
     }
 
