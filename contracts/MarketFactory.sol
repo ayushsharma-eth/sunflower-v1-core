@@ -3,7 +3,7 @@ pragma solidity >=0.5.0;
 import "./interfaces/IMarketFactory.sol";
 import "./Market.sol";
 
-contract Market {
+contract MarketFactory {
 
     mapping(address => address[]) public storefront; //Input address of user, recieve storefront addresses
 
