@@ -1,20 +1,31 @@
 pragma solidity >=0.5.0;
 
 import "./interfaces/IMarket.sol";
-import "./Storefront.sol";
+import "./Product.sol";
 
-contract Market {
+contract Storefront {
 
-    mapping(address => address[]) public storefront; //Input address of user, recieve storefront addresses
+    string public name;
+    address public owner;
 
-    event StoreFrontCreated(address owner, address storefront, uint);
+    constructor
+    (
+        string memory _nameOfStorefront,
+        address _owner
+    )
+    public
+    {
+        name = _nameOfStorefront;
+        owner = _owner;
+    }
 
-    function createStorefront (string memory name) public {
+    function createProduct (string memory _name, uint _quantity, uint[] memory _region, uint[] memory _category) public {
+        require (msg.sender == owner, "Caller does not own Storefront");
         
+        //newProduct = new Product(msg.sender, _name, _quantity, _region, _category); 
+
+        //return newProduct;
     }
 
 
-
-
-
-}
+}   
