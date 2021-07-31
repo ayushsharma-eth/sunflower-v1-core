@@ -9,7 +9,7 @@ contract MarketFactory {
 
     event MarketCreated(address merchant, address market);
 
-    function createMarket (bytes32 _name) external returns (address)
+    function createMarket (string memory _name) external returns (address)
     {
         Market market = new Market(_name, msg.sender);
         markets[msg.sender].push(address(market));
