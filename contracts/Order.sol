@@ -1,6 +1,6 @@
 pragma solidity >=0.5.0;
 
-import "./interfaces/IOrder.sol";
+//import "./interfaces/IOrder.sol";
 
 // Has Ethereum Balance
 
@@ -10,7 +10,7 @@ contract Order {
     address payable public merchant;
     address public product;
 
-    string public encryptedAddress; //encrypted with merchant's public key
+    bytes32 public encryptedAddress; //encrypted with merchant's public key
     uint32 public quantity;
     bool public accepted;
 
@@ -23,7 +23,7 @@ contract Order {
         address payable _merchant,
         address _product,
 
-        string memory _encryptedAddress, //encrypted with merchant's public key
+        bytes32 _encryptedAddress, //encrypted with merchant's public key
         uint32  _quantity,
 
         uint  _escrowAmount,

@@ -1,12 +1,12 @@
 pragma solidity >= 0.5.0;
 
-import "./interfaces/IProduct.sol";
+//import "./interfaces/IProduct.sol";
 import "./Order.sol";
 
 contract Product {
 
     address payable public merchant;
-    string public name;
+    bytes32 public name;
     uint32 public quantity;
     uint public price;
     uint8 public currency; //ETH is 0, DAI is 1
@@ -16,7 +16,7 @@ contract Product {
     constructor
     (
         address payable _merchant,
-        string memory _name,
+        bytes32 _name,
         uint32 _quantity,
         uint _price,
         uint8 _currency,
@@ -40,7 +40,7 @@ contract Product {
         quantity = _quantity;
     }
 
-    function updateName (string memory _name) public {
+    function updateName (bytes32 _name) public {
         require(msg.sender == merchant, "Caller not merchant");
         name = _name;
     }

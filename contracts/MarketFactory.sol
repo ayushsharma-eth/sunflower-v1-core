@@ -1,6 +1,6 @@
 pragma solidity >=0.5.0;
 
-import "./interfaces/IMarketFactory.sol";
+//import "./interfaces/IMarketFactory.sol";
 import "./Market.sol";
 
 contract MarketFactory {
@@ -9,7 +9,7 @@ contract MarketFactory {
 
     event MarketCreated(address owner, address market);
 
-    function createMarket (string memory _name) public returns (address)
+    function createMarket (bytes32 _name) public returns (address)
     {
         Market market = new Market(_name, msg.sender);
         markets[msg.sender].push(address(market));
