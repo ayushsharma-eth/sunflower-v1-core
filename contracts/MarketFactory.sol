@@ -1,6 +1,6 @@
 pragma solidity >=0.5.0;
 
-//import "./interfaces/IMarketFactory.sol";
+import "./interfaces/IMarketFactory.sol";
 import "./Market.sol";
 
 contract MarketFactory {
