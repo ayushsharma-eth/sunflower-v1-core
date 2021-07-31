@@ -65,7 +65,7 @@ contract Product {
 
         require(order.quantity() <= product.quantity(), "Insufficient stock to accept order");
         uint newQuantity = product.quantity() - order.quantity();
-        product.updateQuantity(newQuantity);
+        quantity = newQuantity;
         order.accept();
     }
 }
