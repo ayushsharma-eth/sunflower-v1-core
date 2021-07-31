@@ -5,7 +5,7 @@ import "./Order.sol";
 
 contract Product {
 
-    address public merchant;
+    address payable public merchant;
     string public name;
     uint public quantity;
     uint public price;
@@ -15,7 +15,7 @@ contract Product {
 
     constructor
     (
-        address _merchant,
+        address payable _merchant,
         string memory _name,
         uint _quantity,
         uint _price,

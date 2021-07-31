@@ -9,7 +9,7 @@ contract OrderFactory {
     mapping(address => address[]) orders; // Customer -> Orders
     mapping(address => address[]) productOrders; // Product -> Orders
     
-    function purchaseWithEth (address productAddress, string memory encryptedAddress, uint quantity) public payable returns (address)
+    function purchaseWithEth (address payable customer, address productAddress, string memory encryptedAddress, uint quantity) public payable returns (address)
     {
         Product product = Product(productAddress);
 
@@ -17,11 +17,11 @@ contract OrderFactory {
 
         uint price = product.price();
         uint cost = price * quantity;
-
+         
         require(msg.value == cost, "Incorrect Amount Sent");
 
-        Order order = new Order(msg.sender, product.merchant(), productAddress, encryptedAddress, quantity, escrowAmount, product.currency());
-        bool sent = order.send(msg.value);
+        Order order = new Order(customer, product.merchant(), productAddress, encryptedAddress, quantity, cost, product.currency());
+        bool sent = payable(address(order)).send(msg.value);
         require(sent == true, "Failed to send Ether");
 
         // Add order to both maps
@@ -39,5 +39,10 @@ contract OrderFactory {
     function returnProductOrders (address product) public view returns (address[] memory)
     {
         return productOrders[product]; //returns all orders of a customer
+    }
+
+    receive() external payable
+    {
+
     }
 }

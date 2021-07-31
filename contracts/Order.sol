@@ -7,10 +7,10 @@ import "./interfaces/IOrder.sol";
 contract Order {
 
     address payable public customer;
-    address payable public seller;
+    address payable public merchant;
     address public product;
 
-    string public encryptedAddress; //encrypted with seller's public key
+    string public encryptedAddress; //encrypted with merchant's public key
     uint public quantity;
     bool public accepted;
 
@@ -20,10 +20,10 @@ contract Order {
     constructor
     (
         address payable _customer,
-        address payable _seller,
+        address payable _merchant,
         address _product,
 
-        string memory _encryptedAddress, //encrypted with seller's public key
+        string memory _encryptedAddress, //encrypted with merchant's public key
         uint  _quantity,
 
         uint  _escrowAmount,
@@ -31,7 +31,7 @@ contract Order {
     )
     {
         customer = _customer;
-        seller = _seller;
+        merchant = _merchant;
         product = _product;
 
         encryptedAddress = _encryptedAddress;
@@ -46,7 +46,7 @@ contract Order {
         require (msg.sender == customer, "Not Customer");
         if (escrowCurrency == 0)
         {
-            bool sent = seller.send(escrowAmount);
+            bool sent = merchant.send(escrowAmount);
             require(sent == true, "Transfer failed");
         }
         else
@@ -69,7 +69,7 @@ contract Order {
         accepted = true;
     }
 
-    receive() external payable {
+    function fund() external payable {
         //require(msg.sender == OrderFactory);
     }
 
