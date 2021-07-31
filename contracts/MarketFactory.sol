@@ -7,7 +7,7 @@ contract MarketFactory {
 
     mapping(address => address[]) public markets; // Merchant Address => Markets
 
-    event MarketCreated(address owner, address market);
+    event MarketCreated(address merchant, address market);
 
     function createMarket (bytes32 _name) external returns (address)
     {
