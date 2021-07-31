@@ -41,8 +41,4 @@ contract OrderFactory {
         return productOrders[product]; //returns all orders of a customer
     }
 
-    receive() external payable
-    {
-
-    }
 }
