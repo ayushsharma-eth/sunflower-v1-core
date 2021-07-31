@@ -27,17 +27,17 @@ contract Product {
         category = _category;
     }
 
-    function changeQuantity (uint _quantity) public {
+    function updateQuantity (uint _quantity) public {
         require(msg.sender == owner, "Caller not owner");
         quantity = _quantity;
     }
 
-    function changeName (string memory _name) public {
+    function updateName (string memory _name) public {
         require(msg.sender == owner, "Caller not owner");
         name = _name;
     }
 
-    function changeRegions (uint[] memory _region) public {
+    function updateRegions (uint[] memory _region) public {
         require(msg.sender == owner, "Caller not owner");
         region = _region;
     }

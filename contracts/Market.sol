@@ -10,21 +10,27 @@ contract Market {
 
     constructor
     (
-        string memory _nameOfMarket,
+        string memory _name,
         address _owner
     )
-    public
     {
-        name = _nameOfMarket;
+        name = _name;
         owner = _owner;
     }
 
-    function createProduct (string memory _name, uint _quantity, uint[] memory _region, uint[] memory _category) public {
+    address[] public products;
+    
+    event ProductCreated(string name, uint quantity, uint[] _region, uint[] _category);
+
+    function createProduct (string memory _name, uint _quantity, uint[] memory _region, uint[] memory _category) public returns (address) {
         require (msg.sender == owner, "Caller does not own Storefront");
         
-        //newProduct = new Product(msg.sender, _name, _quantity, _region, _category); 
+        Product product = new Product(msg.sender, _name, _quantity, _region, _category);
+        products.push(address(product));
+        
+        emit ProductCreated(_name, _quantity, _region, _category);
 
-        //return newProduct;
+        return address(product);
     }
 
 
