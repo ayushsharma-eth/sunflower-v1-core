@@ -46,6 +46,9 @@ contract Market {
     mapping(uint => Order[]) public orders; // Product ID to Order Structures
     
     event ProductCreated(string name, uint32 quantity, uint price, uint8 currency, uint8[] _region, uint8[] _category, uint index);
+    event ProductDeleted(string name, uint index);
+
+    // Merchant functions
 
     function createProduct (string memory _name, uint32 _quantity, uint _price, uint8 _currency, uint8[] memory _region, uint8[] memory _category) external
     {
@@ -70,11 +73,44 @@ contract Market {
     {
         require(msg.sender == merchant, "Caller not Merchant");
 
+        emit ProductDeleted(products[productId].name, productId);
+
         delete products[productId];
         delete orders[productId];
 
         totalProducts--;
     }
+
+    function approveOrder (uint productId, uint orderId) external {
+        require(msg.sender == merchant, "Caller not Merchant");
+        require(!orders[productId][orderId].accepted, "Already accepted");
+        
+        orders[productId][orderId].accepted = true;
+        
+        // Deduct Product Contract
+
+        require(orders[productId][orderId].quantity <= products[productId].quantity, "Insufficient stock to accept order");
+        products[productId].quantity -= orders[productId][orderId].quantity;
+    }
+
+    // Manual Management functions
+
+    function updateQuantity (uint32 quantity, uint productId) external {
+        require(msg.sender == merchant, "Caller not merchant");
+        products[productId].quantity = quantity;
+    }
+
+    function updateName (string memory _name, uint productId) external {
+        require(msg.sender == merchant, "Caller not merchant");
+        products[productId].name = _name;
+    }
+
+    function updateRegions (uint8[] memory region, uint productId) external {
+        require(msg.sender == merchant, "Caller not merchant");
+        products[productId].region = region;
+    }
+
+    // Customer functions
 
     function purchaseWithEth(uint productId, string memory encryptedAddress, uint32 quantity) external payable
     {        
@@ -99,19 +135,8 @@ contract Market {
         orders[productId].push(order);
     }
     
-    function approveOrder (uint productId, uint orderId) external {
-        require(msg.sender == merchant, "Caller not Merchant");
-        require(!orders[productId][orderId].accepted, "Already accepted");
-        
-        orders[productId][orderId].accepted = true;
-        
-        // Deduct Product Contract
-
-        require(orders[productId][orderId].quantity <= products[productId].quantity, "Insufficient stock to accept order");
-        products[productId].quantity -= orders[productId][orderId].quantity;
-    }
-    
-    function releaseEscrow (uint productId, uint orderId) external {
+    function releaseEscrow (uint productId, uint orderId) external 
+    {
         require (msg.sender == orders[productId][orderId].customer, "Caller not customer");
         require (orders[productId][orderId].accepted, "Not yet accepted"); // Protect buyer from releasing funds too early
 
@@ -121,7 +146,8 @@ contract Market {
         delete orders[productId][orderId];
     }
 
-    function revokeEscrow (uint productId, uint orderId) external {
+    function revokeEscrow (uint productId, uint orderId) external 
+    {
         require(msg.sender == orders[productId][orderId].customer, "Caller not customer");
         require(!orders[productId][orderId].accepted, "Already accepted");
 
