@@ -9,7 +9,7 @@ contract OrderFactory {
     mapping(address => address[]) orders; // Customer -> Orders
     mapping(address => address[]) productOrders; // Product -> Orders
     
-    function purchaseWithEth (address productAddress, string memory encryptedAddress, uint quantity) public payable returns (address)
+    function purchaseWithEth (address productAddress, string memory encryptedAddress, uint32 quantity) public payable returns (address)
     {
         Product product = Product(productAddress);
 

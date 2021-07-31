@@ -11,11 +11,11 @@ contract Order {
     address public product;
 
     string public encryptedAddress; //encrypted with merchant's public key
-    uint public quantity;
+    uint32 public quantity;
     bool public accepted;
 
     uint public escrowAmount;
-    uint public escrowCurrency; //ETH: 0, DAI: 1
+    uint8 public escrowCurrency; //ETH: 0, DAI: 1
 
     constructor
     (
@@ -24,10 +24,10 @@ contract Order {
         address _product,
 
         string memory _encryptedAddress, //encrypted with merchant's public key
-        uint  _quantity,
+        uint32  _quantity,
 
         uint  _escrowAmount,
-        uint  _escrowCurrency
+        uint8  _escrowCurrency
     )
     {
         customer = _customer;

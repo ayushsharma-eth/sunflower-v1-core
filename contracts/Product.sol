@@ -7,21 +7,21 @@ contract Product {
 
     address payable public merchant;
     string public name;
-    uint public quantity;
+    uint32 public quantity;
     uint public price;
-    uint public currency; //ETH is 0, DAI is 1
-    uint[] public region;
-    uint[] public category;
+    uint8 public currency; //ETH is 0, DAI is 1
+    uint8[] public region;
+    uint8[] public category;
 
     constructor
     (
         address payable _merchant,
         string memory _name,
-        uint _quantity,
+        uint32 _quantity,
         uint _price,
-        uint _currency,
-        uint[] memory _region,
-        uint[] memory _category
+        uint8 _currency,
+        uint8[] memory _region,
+        uint8[] memory _category
     )
     {
         merchant = _merchant;
@@ -35,7 +35,7 @@ contract Product {
 
     // Manual Management functions
 
-    function updateQuantity (uint _quantity) public {
+    function updateQuantity (uint32 _quantity) public {
         require(msg.sender == merchant, "Caller not merchant");
         quantity = _quantity;
     }
@@ -45,7 +45,7 @@ contract Product {
         name = _name;
     }
 
-    function updateRegions (uint[] memory _region) public {
+    function updateRegions (uint8[] memory _region) public {
         require(msg.sender == merchant, "Caller not merchant");
         region = _region;
     }
@@ -64,7 +64,7 @@ contract Product {
         Product product = Product(this);
 
         require(order.quantity() <= product.quantity(), "Insufficient stock to accept order");
-        uint newQuantity = product.quantity() - order.quantity();
+        uint32 newQuantity = product.quantity() - order.quantity();
         quantity = newQuantity;
         order.accept();
     }
