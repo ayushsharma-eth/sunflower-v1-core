@@ -23,7 +23,6 @@ contract Product {
         uint[] memory _region,
         uint[] memory _category
     )
-    public
     {
         merchant = _merchant;
         name = _name;
