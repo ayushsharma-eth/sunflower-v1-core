@@ -6,7 +6,8 @@ contract Market {
 
     string public name;
     address public merchant;
-    uint public productCount;
+    uint public productIndex;
+    uint public totalProducts;
     
     constructor
     (
@@ -16,7 +17,8 @@ contract Market {
     {
         name = _name;
         merchant = _merchant;
-        productCount = 0;
+        productIndex = 0;
+        totalProducts = 0;
     }
 
     struct Product {
@@ -36,16 +38,17 @@ contract Market {
         string encryptedAddress; //encrypted with merchant's public key
         uint32 quantity;
 
-        uint  escrowAmount;
-        uint8  escrowCurrency;
+        uint escrowAmount;
+        uint8 escrowCurrency;
     }
     
     mapping(uint => Product) public products; // Product ID to Product Structure
     mapping(uint => Order[]) public orders; // Product ID to Order Structures
     
-    event ProductCreated(string name, uint32 quantity, uint price, uint8 currency, uint8[] _region, uint8[] _category);
+    event ProductCreated(string name, uint32 quantity, uint price, uint8 currency, uint8[] _region, uint8[] _category, uint index);
 
-    function createProduct (string memory _name, uint32 _quantity, uint _price, uint8 _currency, uint8[] memory _region, uint8[] memory _category) external returns (uint) {
+    function createProduct (string memory _name, uint32 _quantity, uint _price, uint8 _currency, uint8[] memory _region, uint8[] memory _category) external
+    {
         require (msg.sender == merchant, "Caller is not Merchant");
         
         Product memory product = Product(
@@ -57,21 +60,27 @@ contract Market {
             _category
         );
         
-        products[productCount] = product;
+        products[productIndex] = product;
+        totalProducts++;
 
-        emit ProductCreated(_name, _quantity, _price, _currency, _region, _category);
-        
-        return productCount++;
+        emit ProductCreated(_name, _quantity, _price, _currency, _region, _category, productIndex++);
+    }
+
+    function deleteProduct (uint productId) external 
+    {
+        require(msg.sender == merchant);
+
+        delete products[productId];
+        delete orders[productId];
+
+        totalProducts--;
     }
 
     function purchaseWithEth(uint productId, string memory encryptedAddress, uint32 quantity) external payable
-    {
-        
-        Product memory product = products[productId];
-        
-        require(product.quantity >= quantity, "Insufficient stock");
+    {        
+        require(products[productId].quantity >= quantity, "Insufficient stock");
 
-        uint price = product.price;
+        uint price = products[productId].price;
         uint cost = price * quantity;
          
         require(msg.value == cost, "Incorrect Amount Sent");
@@ -83,7 +92,7 @@ contract Market {
             encryptedAddress,
             quantity,
             cost,
-            product.currency
+            products[productId].currency
         );
 
         // Add order to both maps

@@ -9,14 +9,12 @@ contract MarketFactory {
 
     event MarketCreated(address merchant, address market);
 
-    function createMarket (string memory _name) external returns (address)
+    function createMarket (string memory _name) external
     {
         Market market = new Market(_name, msg.sender);
         markets[msg.sender].push(address(market));
 
         emit MarketCreated(msg.sender, address(market));
-
-        return address(market); // Returns address of newly created Market
     }
 
     function returnMarkets (address merchant) external view returns (address[] memory)
