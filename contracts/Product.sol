@@ -64,15 +64,9 @@ contract Product {
         // Deduct Product Contract
         Product product = Product(this);
 
-        uint newQuantity = product.quantity() - quantity;
-        if (newQuantity >= 0)
-        {
-            product.updateQuantity(newQuantity);
-            order.accept();
-        }
-        else
-        {
-            revert("Insufficient quantity to accept");
-        }
+        require(order.quantity() <= product.quantity(), "Insufficient stock to accept order");
+        uint newQuantity = product.quantity() - order.quantity();
+        product.updateQuantity(newQuantity);
+        order.accept();
     }
 }
