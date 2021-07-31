@@ -69,7 +69,7 @@ contract Order {
         accepted = true;
     }
 
-    function fund() external payable {
+    receive () external payable {
         //require(msg.sender == OrderFactory);
     }
 
