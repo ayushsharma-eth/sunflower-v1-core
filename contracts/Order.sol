@@ -6,7 +6,7 @@ import "./interfaces/IOrder.sol";
 
 contract Order {
 
-    address public customer;
+    address payable public customer;
     address payable public seller;
     address public product;
 
@@ -19,7 +19,7 @@ contract Order {
 
     constructor
     (
-        address _customer,
+        address payable _customer,
         address payable _seller,
         address _product,
 
@@ -53,6 +53,15 @@ contract Order {
         {
             revert("Currency not yet supported");
         }
+    }
+
+
+    // Buyer can revoke escrow at any time if order not accepted
+    function revokeEscrow () public {
+        require (msg.sender == customer, "Not Customer");
+        require (accepted == false, "Already accepted");
+        bool sent = customer.send(escrowAmount);
+        require(sent == true, "Transfer failed");
     }
 
     function accept () public {
