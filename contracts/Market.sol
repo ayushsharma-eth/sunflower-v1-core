@@ -20,15 +20,15 @@ contract Market {
 
     address[] public products;
     
-    event ProductCreated(string name, uint quantity, uint[] _region, uint[] _category);
+    event ProductCreated(string name, uint quantity, uint price, uint currency, uint[] _region, uint[] _category);
 
-    function createProduct (string memory _name, uint _quantity, uint[] memory _region, uint[] memory _category) public returns (address) {
-        require (msg.sender == owner, "Caller does not own Storefront");
+    function createProduct (string memory _name, uint _quantity, uint _price, uint _currency, uint[] memory _region, uint[] memory _category) public returns (address) {
+        require (msg.sender == owner, "Caller does not own Market");
         
-        Product product = new Product(msg.sender, _name, _quantity, _region, _category);
+        Product product = new Product(msg.sender, _name, _quantity, _price, _currency, _region, _category);
         products.push(address(product));
         
-        emit ProductCreated(_name, _quantity, _region, _category);
+        emit ProductCreated(_name, _quantity, _price, _currency, _region, _category);
 
         return address(product);
     }

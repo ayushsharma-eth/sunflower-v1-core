@@ -7,7 +7,7 @@ contract MarketFactory {
 
     mapping(address => address[]) public markets; // Merchant Address => Markets
 
-    event MarketCreated(address owner, address storefront);
+    event MarketCreated(address owner, address market);
 
     function createMarket (string memory _name) public returns (address)
     {
