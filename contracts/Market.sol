@@ -68,7 +68,7 @@ contract Market {
 
     function deleteProduct (uint productId) external 
     {
-        require(msg.sender == merchant);
+        require(msg.sender == merchant, "Caller not Merchant");
 
         delete products[productId];
         delete orders[productId];
