@@ -9,7 +9,7 @@ contract OrderFactory {
     mapping(address => address[]) orders; // Customer -> Orders
     mapping(address => address[]) productOrders; // Product -> Orders
     
-    function purchaseWithEth (address productAddress, bytes32 encryptedAddress, uint32 quantity) public payable returns (address)
+    function purchaseWithEth (address productAddress, bytes32 encryptedAddress, uint32 quantity) external payable returns (address)
     {
         Product product = Product(productAddress);
 
@@ -31,12 +31,12 @@ contract OrderFactory {
         return address(order);
     }
 
-    function returnOrders (address customer) public view returns (address[] memory)
+    function returnOrders (address customer) external view returns (address[] memory)
     {
         return orders[customer]; //returns all orders of a customer
     }
 
-    function returnProductOrders (address product) public view returns (address[] memory)
+    function returnProductOrders (address product) external view returns (address[] memory)
     {
         return productOrders[product]; //returns all orders of a customer
     }

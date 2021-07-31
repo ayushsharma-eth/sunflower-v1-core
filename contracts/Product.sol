@@ -35,24 +35,24 @@ contract Product {
 
     // Manual Management functions
 
-    function updateQuantity (uint32 _quantity) public {
+    function updateQuantity (uint32 _quantity) external {
         require(msg.sender == merchant, "Caller not merchant");
         quantity = _quantity;
     }
 
-    function updateName (bytes32 _name) public {
+    function updateName (bytes32 _name) external {
         require(msg.sender == merchant, "Caller not merchant");
         name = _name;
     }
 
-    function updateRegions (uint8[] memory _region) public {
+    function updateRegions (uint8[] memory _region) external {
         require(msg.sender == merchant, "Caller not merchant");
         region = _region;
     }
 
     // Accept Orders
 
-    function approveOrder (address payable _order) public {
+    function approveOrder (address payable _order) external {
         require(msg.sender == merchant, "Not Merchant");
 
         Order order = Order(_order);
@@ -61,10 +61,9 @@ contract Product {
         require(order.product() == address(this), "Order does not belong to this Product");
 
         // Deduct Product Contract
-        Product product = Product(this);
 
-        require(order.quantity() <= product.quantity(), "Insufficient stock to accept order");
-        uint32 newQuantity = product.quantity() - order.quantity();
+        require(order.quantity() <= quantity, "Insufficient stock to accept order");
+        uint32 newQuantity = quantity - order.quantity();
         quantity = newQuantity;
         order.accept();
     }

@@ -42,7 +42,7 @@ contract Order {
         escrowCurrency = _escrowCurrency;
     }
 
-    function releaseEscrow () public {
+    function releaseEscrow () external {
         require (msg.sender == customer, "Not Customer");
         if (escrowCurrency == 0)
         {
@@ -57,14 +57,14 @@ contract Order {
 
 
     // Buyer can revoke escrow at any time if order not accepted
-    function revokeEscrow () public {
+    function revokeEscrow () external {
         require (msg.sender == customer, "Not Customer");
         require (accepted == false, "Already accepted");
         bool sent = customer.send(escrowAmount);
         require(sent == true, "Transfer failed");
     }
 
-    function accept () public {
+    function accept () external {
         require (msg.sender == product);
         accepted = true;
     }

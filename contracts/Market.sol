@@ -22,7 +22,7 @@ contract Market {
     
     event ProductCreated(bytes32 name, uint32 quantity, uint price, uint8 currency, uint8[] _region, uint8[] _category);
 
-    function createProduct (bytes32 _name, uint32 _quantity, uint _price, uint8 _currency, uint8[] memory _region, uint8[] memory _category) public returns (address) {
+    function createProduct (bytes32 _name, uint32 _quantity, uint _price, uint8 _currency, uint8[] memory _region, uint8[] memory _category) external returns (address) {
         require (msg.sender == owner, "Caller does not own Market");
         
         Product product = new Product(payable(msg.sender), _name, _quantity, _price, _currency, _region, _category);
