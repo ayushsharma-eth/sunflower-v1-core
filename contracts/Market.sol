@@ -1,22 +1,26 @@
+//SPDX-License-Identifier: MIT
 pragma solidity >=0.8.6;
 
 import "./interfaces/IMarket.sol";
+import "./Rating.sol";
 
 contract Market {
 
     string public name;
     address public merchant;
+    address public ratingAddress;
     uint public productIndex;
     uint public totalProducts;
     
     constructor
     (
         string memory _name,
-        address _merchant
-    )
-    {
+        address _merchant,
+        address _ratingAddress
+    ) {
         name = _name;
         merchant = _merchant;
+        ratingAddress = _ratingAddress;
         productIndex = 0;
         totalProducts = 0;
     }
@@ -42,6 +46,8 @@ contract Market {
         uint8 escrowCurrency;
 
         uint8 region;
+
+        address arbitrator;
     }
     
     mapping(uint => Product) public products; // Product ID to Product Structure (use loop that incrementes by 1 from 0 until you find all order structures, as given by totalProducts)
@@ -124,7 +130,7 @@ contract Market {
 
     // Customer functions
 
-    function purchaseWithEth(uint productId, string memory encryptedAddress, uint32 quantity, uint8 region) external payable
+    function purchaseWithEth(uint productId, string memory encryptedAddress, uint32 quantity, uint8 region, address arbitrator) external payable
     {        
         require(products[productId].quantity >= quantity, "Insufficient stock");
 
@@ -153,7 +159,8 @@ contract Market {
             quantity,
             cost,
             products[productId].currency,
-            region
+            region,
+            arbitrator
         );
 
         orders[productId].push(order);
@@ -168,6 +175,10 @@ contract Market {
         bool sent = payable(merchant).send(orders[productId][orderId].escrowAmount);
         require(sent == true, "Transfer failed");
         
+        // Enable Reviews
+        Rating rating = Rating(ratingAddress);
+        rating.mayReview(address(this), productId, merchant, orders[productId][orderId].customer, orders[productId][orderId].arbitrator);
+
         delete orders[productId][orderId];
         totalOrders[productId]--;
     }
