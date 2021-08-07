@@ -24,9 +24,9 @@ contract Rating {
         bytes32 message; // Shortened link to signed message hosted offchain, like a forum
     }
 
-    mapping(address => Review[]) buyerRatings; // Mapping Buyer address to structure
-    mapping(address => Review[]) merchantRatings; // Mapping Merchant address to structure
-    mapping(address => Review[]) arbitratorRatings; // Mapping Arbitrator address to structure
+    mapping(address => Review[]) public buyerRatings; // Mapping Buyer address to structure
+    mapping(address => Review[]) public merchantRatings; // Mapping Merchant address to structure
+    mapping(address => Review[]) public arbitratorRatings; // Mapping Arbitrator address to structure
 
     mapping(address => mapping(address => Ticket)) mayRate; // Can an address rate another address and who is who
 
