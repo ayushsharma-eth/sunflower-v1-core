@@ -113,12 +113,13 @@ contract Rating {
     function _review(address reviwee, address reviewer, uint8 rating, bytes32 message) external
     {
         require(mayRate[reviewer][reviwee].eligible, "Ineligible");
+        require(msg.sender == reviewer, "Not Reviewer");
         
         Review memory review = Review(
-            mayRate[reviewer][reviee].typeOfReviewer,
+            mayRate[reviewer][reviwee].typeOfReviewer,
             reviewer,
-            mayRate[reviewer][reviee].market,
-            mayRate[reviewer][reviee].product,
+            mayRate[reviewer][reviwee].market,
+            mayRate[reviewer][reviwee].product,
             rating, // Likert Scale 1-5
             message // Shortened link to signed message hosted offchain, like a forum
         );
