@@ -126,14 +126,17 @@ contract Rating {
         if (mayRate[reviewer][reviwee].typeOfReviewee == 0) // Would prefer switch but DNE
         {
             buyerRatings[reviwee].push(review);
+            delete mayRate[reviewer][reviwee];
         }
         else if (mayRate[reviewer][reviwee].typeOfReviewee == 1)
         {
             merchantRatings[reviwee].push(review);
+            delete mayRate[reviewer][reviwee];
         }
         else
         {
             arbitratorRatings[reviwee].push(review);
+            delete mayRate[reviewer][reviwee];
         }
     }
 
