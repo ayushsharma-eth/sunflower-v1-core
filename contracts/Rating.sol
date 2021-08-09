@@ -28,7 +28,9 @@ contract Rating {
     mapping(address => Review[]) public merchantRatings; // Mapping Merchant address to structure
     mapping(address => Review[]) public arbitratorRatings; // Mapping Arbitrator address to structure
 
-    mapping(address => mapping(address => Ticket)) mayRate; // Can an address rate another address and who is who
+    mapping(address => mapping(address => mapping(uint => Ticket))) public mayRate; // mayRate[reviewer][reviewee][ticketId] => Ticket struct
+    mapping(address => mapping(address => uint)) public numOfTickets; //numOfTickets[reviewer][reviewee] => number of tickets **for given address pair**
+    mapping(address => Ticket[]) public tickets; // All tickets for given address
 
     struct Ticket
     {
@@ -37,107 +39,120 @@ contract Rating {
         uint8 typeOfReviewer;
         address market;
         uint product;
+        uint order;
     }
 
-    function mayReview(address market, uint product, address merchant, address buyer, address arbitrator) external {
+    function mayReview(address market, uint product, address merchant, address buyer, address arbitrator, uint order) external {
         require(msg.sender == market, "Sunflower-V1/FORBIDDEN");
         MarketFactory MF = MarketFactory(marketFactoryAddress);
         require(MF.isMarket(market), "Sunflower-V1/FORBIDDEN");
 
-        if(arbitrator)
+        if(arbitrator != address(0))
         {
             Ticket memory ticket1 = Ticket(
                 true,
                 0, // Buyer
                 2, // Arbitrator
                 market,
-                product
+                product,
+                order
             );
 
-            mayRate[arbitrator][buyer] = ticket1;
+            mayRate[arbitrator][buyer][numOfTickets[arbitrator][buyer]++] = ticket1;
+            tickets[arbitrator].push(ticket1);
 
             Ticket memory ticket2 = Ticket(
                 true,
                 1, // Merchant
                 2, // Arbitrator
                 market,
-                product
+                product,
+                order
             );
 
-            mayRate[arbitrator][merchant] = ticket2;
+            mayRate[arbitrator][merchant][numOfTickets[arbitrator][merchant]++] = ticket2;
+            tickets[arbitrator].push(ticket2);
 
             Ticket memory ticket3 = Ticket(
                 true,
                 2, // Arbitrator
                 0, // Buyer
                 market,
-                product
+                product,
+                order
             );
 
-            mayRate[buyer][arbitrator] = ticket3;
+            mayRate[buyer][arbitrator][numOfTickets[buyer][arbitrator]++] = ticket3;
+            tickets[buyer].push(ticket3);
 
             Ticket memory ticket4 = Ticket(
                 true,
                 2, // Arbitrator
                 1, // Merchant
                 market,
-                product
+                product,
+                order
             );
 
-            mayRate[buyer][arbitrator] = ticket4;
+            mayRate[merchant][arbitrator][numOfTickets[merchant][arbitrator]++] = ticket4;
+            tickets[merchant].push(ticket4);
         }
 
-        // Buyer can rate Merchant
+        // Buyer & Merchant
 
         Ticket memory ticket5 = Ticket(
             true,
             1, // Merchant
             0, // Buyer
             market,
-            product
+            product,
+            order
         );
 
-        mayRate[buyer][merchant] = ticket5;
+        mayRate[buyer][merchant][numOfTickets[buyer][merchant]++] = ticket5;
+        tickets[buyer].push(ticket5);
 
         Ticket memory ticket6 = Ticket(
             true,
             0, // Buyer
             1, // Merchant
             market,
-            product
+            product,
+            order
         );
 
-        mayRate[merchant][buyer] = ticket6;
+        mayRate[merchant][buyer][numOfTickets[merchant][buyer]++] = ticket6;
+        tickets[merchant].push(ticket6);
     }
 
-    function _review(address reviwee, address reviewer, uint8 rating, bytes32 message) external
+    function review(address reviewee, address reviewer, uint8 rating, uint ticketId, bytes32 message) external
     {
-        require(mayRate[reviewer][reviwee].eligible, "Ineligible");
+        require(mayRate[reviewer][reviewee][ticketId].eligible, "Ineligible");
         require(msg.sender == reviewer, "Not Reviewer");
-        
-        Review memory review = Review(
-            mayRate[reviewer][reviwee].typeOfReviewer,
+
+        Review memory _review = Review(
+            mayRate[reviewer][reviewee][ticketId].typeOfReviewer,
             reviewer,
-            mayRate[reviewer][reviwee].market,
-            mayRate[reviewer][reviwee].product,
+            mayRate[reviewer][reviewee][ticketId].market,
+            mayRate[reviewer][reviewee][ticketId].product,
             rating, // Likert Scale 1-5
             message // Shortened link to signed message hosted offchain, like a forum
         );
 
-        if (mayRate[reviewer][reviwee].typeOfReviewee == 0) // Would prefer switch but DNE
+        if (mayRate[reviewer][reviewee][ticketId].typeOfReviewee == 0) // Would prefer switch but DNE
         {
-            buyerRatings[reviwee].push(review);
-            delete mayRate[reviewer][reviwee];
+            buyerRatings[reviewee].push(_review);
+            delete mayRate[reviewer][reviewee][ticketId];
         }
-        else if (mayRate[reviewer][reviwee].typeOfReviewee == 1)
+        else if (mayRate[reviewer][reviewee][ticketId].typeOfReviewee == 1)
         {
-            merchantRatings[reviwee].push(review);
-            delete mayRate[reviewer][reviwee];
+            merchantRatings[reviewee].push(_review);
+            delete mayRate[reviewer][reviewee][ticketId];
         }
         else
         {
-            arbitratorRatings[reviwee].push(review);
-            delete mayRate[reviewer][reviwee];
+            arbitratorRatings[reviewee].push(_review);
+            delete mayRate[reviewer][reviewee][ticketId];
         }
     }
 

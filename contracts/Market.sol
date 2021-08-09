@@ -177,7 +177,7 @@ contract Market {
         
         // Enable Reviews
         Rating rating = Rating(ratingAddress);
-        rating.mayReview(address(this), productId, merchant, orders[productId][orderId].customer, orders[productId][orderId].arbitrator);
+        rating.mayReview(address(this), productId, merchant, orders[productId][orderId].customer, orders[productId][orderId].arbitrator, orderId);
 
         delete orders[productId][orderId];
         totalOrders[productId]--;
