@@ -1,14 +1,17 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.6;
+pragma experimental ABIEncoderV2;
 
 import "./interfaces/IMarket.sol";
 import "./Rating.sol";
+import "./Mediation.sol";
 
 contract Market {
 
     string public name;
     address public merchant;
     address public ratingAddress;
+    address public mediationAddress;
     uint public productIndex;
     uint public totalProducts;
     
@@ -150,6 +153,10 @@ contract Market {
         }
 
         require(matchRegion, "Region not accepted");
+
+        Mediation mediation = Mediation(mediationAddress);
+        if (arbitrator != address(0)) // Enter ZERO_ADDRESS for no Arbitrator
+            require(mediation.isArbitrator(arbitrator), "Provided Arbitrator Address is not an Arbitrator");
 
         Order memory order = Order(
             false,

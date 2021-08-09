@@ -70,4 +70,8 @@ contract Mediation {
             if (arbitrators[arbitrator].isArbitrator) arbitrators[arbitrator].isArbitrator == false;
         }
     }
+
+    function isArbitrator (address addr) external view returns (bool) {
+        return arbitrators[addr].isArbitrator;
+    }
 }
