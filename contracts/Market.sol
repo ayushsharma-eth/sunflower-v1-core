@@ -18,11 +18,13 @@ contract Market {
     (
         string memory _name,
         address _merchant,
-        address _ratingAddress
+        address _ratingAddress,
+        address _mediationAddress
     ) {
         name = _name;
         merchant = _merchant;
         ratingAddress = _ratingAddress;
+        mediationAddress = _mediationAddress;
         productIndex = 0;
         totalProducts = 0;
     }

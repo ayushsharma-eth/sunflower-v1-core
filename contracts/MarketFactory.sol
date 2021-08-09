@@ -8,12 +8,10 @@ contract MarketFactory {
 
     address public ratingAddress;
     address public deployerAddress;
+    address public mediationAddress;
 
-    constructor
-    (
-        address _deployerAddress
-    ) {
-        deployerAddress = _deployerAddress;
+    constructor () {
+        deployerAddress = msg.sender;
     }
 
     mapping(address => address[]) public markets; // Merchant Address => Markets
@@ -24,7 +22,7 @@ contract MarketFactory {
 
     function createMarket (string memory _name) external
     {
-        Market market = new Market(_name, msg.sender, ratingAddress);
+        Market market = new Market(_name, msg.sender, ratingAddress, mediationAddress);
         markets[msg.sender].push(address(market));
         //merchants[address(market)] = msg.sender;
         allMarkets.push(address(market));
@@ -41,5 +39,10 @@ contract MarketFactory {
     function updateRatingAddress (address _ratingAddress) external {
         require(msg.sender == deployerAddress, "Sunflower-V1/FORBIDDEN");
         ratingAddress = _ratingAddress;
+    }
+
+    function updateMediationAddress (address _mediationAddress) external {
+        require(msg.sender == deployerAddress, "Sunflower-V1/FORBIDDEN");
+        mediationAddress = _mediationAddress;
     }
 }

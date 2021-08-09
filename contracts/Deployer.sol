@@ -31,7 +31,7 @@ contract Deployer {
         ERC20Basic Sun = new ERC20Basic(totalSupply);
 
         // Deploy Market Factory
-        MarketFactory MF = new MarketFactory(address(this));
+        MarketFactory MF = new MarketFactory();
         
         // Deploy Rating
         Rating rating = new Rating(address(MF));
