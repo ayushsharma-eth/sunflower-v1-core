@@ -9,6 +9,16 @@ contract Mediation {
     address public marketFactoryAddress;
     uint public minStakingRequirement;
 
+    constructor(
+        address _tokenAddress,
+        address _marketFactoryAddress,
+        uint _minStakingRequirement
+    ) {
+        tokenAddress = _tokenAddress;
+        marketFactoryAddress = _marketFactoryAddress;
+        minStakingRequirement = _minStakingRequirement;
+    }
+
     mapping(address => Arbitrator) public arbitrators;
 
     struct Arbitrator {

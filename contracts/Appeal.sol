@@ -7,6 +7,14 @@ contract Appeal {
     address public tokenAddress;
     uint public minStakingAmount; //5% of protocol (Real value TBD)
 
+    constructor(
+        address _tokenAddress,
+        uint _minStakingAmount
+    ) {
+        tokenAddress = _tokenAddress;
+        minStakingAmount = _minStakingAmount;
+    }
+
     struct Justice {
         bool isJustice;
         uint escrowAmount;

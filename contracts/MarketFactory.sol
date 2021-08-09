@@ -7,16 +7,16 @@ import "./Market.sol";
 contract MarketFactory {
 
     address public ratingAddress;
+    address public deployerAddress;
 
     constructor
     (
-        address _ratingAddress
+        address _deployerAddress
     ) {
-        ratingAddress = _ratingAddress;
+        deployerAddress = _deployerAddress;
     }
 
     mapping(address => address[]) public markets; // Merchant Address => Markets
-    //mapping(address => address) public merchants; // Market => Merchant Address
     mapping(address => bool) public isMarket; 
     address[] allMarkets; // Can fetch all merchants from market contract
 
@@ -38,8 +38,8 @@ contract MarketFactory {
         return markets[merchant]; // Return all markets of given merchant
     }
 
-    // function returnMerchant (address market) external view returns (address)
-    // {
-    //     return merchants[market]; // Return merchant for given market
-    // }
+    function updateRatingAddress (address _ratingAddress) external {
+        require(msg.sender == deployerAddress, "Sunflower-V1/FORBIDDEN");
+        ratingAddress = _ratingAddress;
+    }
 }
