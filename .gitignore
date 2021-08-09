@@ -1,4 +1,8 @@
 build/
 truffle-config.js
 .DS_Store
+package-lock.json
 migrations/
+env/
+node_modules/
+test/
