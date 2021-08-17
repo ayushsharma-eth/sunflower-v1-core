@@ -16,7 +16,7 @@ contract MarketFactory {
 
     mapping(address => address[]) public markets; // Merchant Address => Markets
     mapping(address => bool) public isMarket; 
-    address[] allMarkets; // Can fetch all merchants from market contract
+    address[] public allMarkets; // Can fetch all merchants from market contract
 
     event MarketCreated(address merchant, address market);
 
