@@ -16,7 +16,7 @@ contract MarketFactory {
 
     mapping(address => address[]) public markets; // Merchant Address => Markets
     mapping(address => bool) public isMarket; 
-    address[] public allMarkets; // Can fetch all merchants from market contract
+    address[] allMarkets; // Can fetch all merchants from market contract
 
     event MarketCreated(address merchant, address market);
 
@@ -34,6 +34,11 @@ contract MarketFactory {
     function returnMarkets (address merchant) external view returns (address[] memory)
     {
         return markets[merchant]; // Return all markets of given merchant
+    }
+
+    function returnAllMarkets () external view returns (address[] memory)
+    {
+        return allMarkets;
     }
 
     function updateRatingAddress (address _ratingAddress) external {
