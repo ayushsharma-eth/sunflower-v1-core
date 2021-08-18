@@ -1,66 +1,63 @@
 pragma solidity >=0.8.6;
 
 import "./interfaces/IERC20.sol";
+import "./Mediation.sol";
+import "./Bank.sol";
 
 contract Appeal {
     
+    address public mediationAddress;
     address public tokenAddress;
-    uint public minStakingAmount; //5% of protocol (Real value TBD)
+    uint public minStakingRequirement; //5% of protocol (Real value TBD)
+    address bankAddress;
 
     constructor(
+        address _mediationAddress,
         address _tokenAddress,
-        uint _minStakingAmount
-    ) {
+        uint _minStakingRequirement,
+        address _bankAddress
+    )
+    {
+        mediationAddress = _mediationAddress;
         tokenAddress = _tokenAddress;
-        minStakingAmount = _minStakingAmount;
+        minStakingRequirement = _minStakingRequirement;
+        bankAddress = _bankAddress;
     }
 
     struct Justice {
         bool isJustice;
-        uint escrowAmount;
         uint timer;
     }
 
     mapping(address => Justice) justices;
 
-    // Must approve this contract first with desired amount to stake
-    function stake(address justice, uint amount) external payable {
-        require(amount > 0, "Amount must be greater than zero");
-        IERC20 Token = IERC20(tokenAddress);
-        uint256 allowance = Token.allowance(msg.sender, address(this));
-        require(allowance >= amount, "Amount higher than allowance");
-        Token.transferFrom(msg.sender, address(this), amount);
-        justices[justice].escrowAmount += amount;
-    }
-
-    function unstake(uint amount) external {
-        require(amount > 0, "Amount must be greater than zero");
-        require(amount <= justices[msg.sender].escrowAmount, "Insufficient stake");
-        
-        IERC20 Token = IERC20(tokenAddress);
-
-        if (justices[msg.sender].escrowAmount - amount >= minStakingAmount)
-        {
-            Token.transfer(msg.sender, amount);
-            justices[msg.sender].escrowAmount -= amount;
-        }
-        else
-        {
-            require(block.timestamp >= justices[msg.sender].timer, "Cooldown still active");
-            Token.transfer(msg.sender, amount);
-            justices[msg.sender].escrowAmount -= amount;
-            if (justices[msg.sender].isJustice) justices[msg.sender].isJustice == false;
-        }
-    }
-
     function join() external { //become Justice (locks tokens for minTime)
         require(!justices[msg.sender].isJustice, "Already Justice");
-        require(justices[msg.sender].escrowAmount >= minStakingAmount, "Insufficient stake");
+
+        Mediation mediation = Mediation(mediationAddress);
+        require(!mediation.isArbitrator(msg.sender), "Cannot be Arbitrator");
+        require(!mediation.isCooldownActive(msg.sender), "Must wait until cooldown has passed");
+
+        Bank bank = Bank(bankAddress);
+        require(bank.stakedBalance(msg.sender) >= minStakingRequirement, "Insufficient stake");
         justices[msg.sender].isJustice = true;
     }
 
     function quit() external {
         require(justices[msg.sender].isJustice, "Not Justice");
         justices[msg.sender].isJustice = false;
+    }
+
+    function fire(address justice) external {
+        require(msg.sender == bankAddress, "Sunflower-V1/FORBIDDEN");
+        justices[justice].isJustice = false;
+    }
+
+    function isJustice(address addr) external view returns (bool) {
+        return justices[addr].isJustice;
+    }
+
+    function isCooldownActive (address addr) external view returns (bool) {
+        return block.timestamp >= justices[addr].timer;
     }
 }

@@ -1,11 +1,13 @@
 pragma solidity >=0.8.6;
 
 import "./interfaces/IERC20.sol";
+import "./Appeal.sol";
 import "./MarketFactory.sol";
 import "./Bank.sol";
 
 contract Mediation {
 
+    address public appealAddress;
     address public tokenAddress;
     address public marketFactoryAddress;
     uint public minStakingRequirement;
@@ -13,11 +15,14 @@ contract Mediation {
     address public bankAddress;
 
     constructor(
+        address _appealAddress,
         address _tokenAddress,
         address _marketFactoryAddress,
         uint _minStakingRequirement,
         address _bankAddress
-    ) {
+    ) 
+    {
+        appealAddress = _appealAddress;
         tokenAddress = _tokenAddress;
         marketFactoryAddress = _marketFactoryAddress;
         minStakingRequirement = _minStakingRequirement;
@@ -28,7 +33,6 @@ contract Mediation {
 
     struct Arbitrator {
         bool isArbitrator;
-        uint escrowAmount;
         uint timer;
     }
 
@@ -36,9 +40,12 @@ contract Mediation {
     {
         require(!arbitrators[msg.sender].isArbitrator, "Already Arbitrator");
 
+        Appeal appeal = Appeal(appealAddress);
+        require(!appeal.isJustice(msg.sender), "Cannot be Justice");
+        require(!appeal.isCooldownActive(msg.sender), "Must wait until cooldown has passed");
+
         Bank bank = Bank(bankAddress);
         require(bank.stakedBalance(msg.sender) >= minStakingRequirement, "Insufficient stake");
-
         arbitrators[msg.sender].isArbitrator = true;
     }
 

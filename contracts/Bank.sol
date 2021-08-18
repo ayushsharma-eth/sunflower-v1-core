@@ -2,7 +2,10 @@ pragma solidity >=0.8.6;
 
 import "./interfaces/IERC20.sol";
 import "./Mediation.sol";
+import "./Appeal.sol";
 import "./Market.sol";
+import "./MarketFactory.sol";
+import "./Rating.sol";
 
 contract Bank {
     
@@ -10,19 +13,22 @@ contract Bank {
     address public marketFactoryAddress;
     address public ratingAddress;
     address public mediationAddress;
+    address public appealAddress;
 
     constructor
     (
         address _tokenAddress,
         address _marketFactoryAddress,
         address _ratingAddress,
-        address _mediationAddress
+        address _mediationAddress,
+        address _appealAddress
     )
     {
         tokenAddress = _tokenAddress;
         marketFactoryAddress = _marketFactoryAddress;
         ratingAddress = _ratingAddress;
         mediationAddress = _mediationAddress;
+        appealAddress = _appealAddress;
     }
 
     struct Escrow {
@@ -57,34 +63,30 @@ contract Bank {
         require(amount <= ethBalance[msg.sender], "Insufficient stake");
         
         IERC20 Token = IERC20(tokenAddress);
+        Mediation mediation = Mediation(mediationAddress);
+        Appeal appeal = Appeal(appealAddress);
 
         // Check if Arbitrator
-        Mediation mediation = Mediation(mediationAddress);
-        if (mediation.isArbitrator(msg.sender))
-        {
-            uint minStakingRequirement = mediation.minStakingRequirement();
-            if (ethBalance[msg.sender] - amount >= minStakingRequirement)
-            {
-                // Add check for justice
-                Token.transfer(msg.sender, amount);
-                ethBalance[msg.sender] -= amount;
-                return;
-            }
-            else
-            {
-                require(!mediation.isCooldownActive(msg.sender), "Cooldown still active");
-                Token.transfer(msg.sender, amount);
-                ethBalance[msg.sender] -= amount;
-                if (mediation.isArbitrator(msg.sender)) mediation.fire(msg.sender);
-                return;
-            }
+        if (mediation.isArbitrator(msg.sender) || mediation.isCooldownActive(msg.sender)) {
+            uint arbitratorStakingRequirement = mediation.minStakingRequirement();
+            require (ethBalance[msg.sender] - amount >= arbitratorStakingRequirement, "Amount would violate minstakingrequirement");
+            Token.transfer(msg.sender, amount);
+            ethBalance[msg.sender] -= amount;
+            return;
         }
 
-        // Add check for justice
+        // Check if Justice
+        if (appeal.isJustice(msg.sender) || appeal.isCooldownActive(msg.sender)) {
+            uint justiceStakingRequirement = appeal.minStakingRequirement();
+            require (ethBalance[msg.sender] - amount >= justiceStakingRequirement, "Amount would violate minstakingrequirement");
+            Token.transfer(msg.sender, amount);
+            ethBalance[msg.sender] -= amount;
+            return;
+        }
 
 
-        // Else
-        
+        // Else (if cooldowns are not active AND not currently Arbitrator nor Justice)
+
         Token.transfer(msg.sender, amount);
         ethBalance[msg.sender] -= amount;
     }
