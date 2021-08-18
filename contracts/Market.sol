@@ -4,6 +4,7 @@ pragma solidity >=0.8.6;
 import "./interfaces/IMarket.sol";
 import "./Rating.sol";
 import "./Mediation.sol";
+import "./Bank.sol";
 
 contract Market {
 
@@ -11,6 +12,7 @@ contract Market {
     address public merchant;
     address public ratingAddress;
     address public mediationAddress;
+    address public bankAddress;
     uint public productIndex;
     uint public totalProducts;
     
@@ -19,12 +21,14 @@ contract Market {
         string memory _name,
         address _merchant,
         address _ratingAddress,
-        address _mediationAddress
+        address _mediationAddress,
+        address _bankAddress
     ) {
         name = _name;
         merchant = _merchant;
         ratingAddress = _ratingAddress;
         mediationAddress = _mediationAddress;
+        bankAddress = _bankAddress;
         productIndex = 0;
         totalProducts = 0;
     }
@@ -90,18 +94,6 @@ contract Market {
         emit ProductCreated(_name, _quantity, _price, _currency, _region, _category, productIndex++);
     }
 
-    function deleteProduct (uint productId) external 
-    {
-        require(msg.sender == merchant, "Caller not Merchant");
-
-        emit ProductDeleted(products[productId].name, productId);
-
-        delete products[productId];
-        delete orders[productId];
-
-        totalProducts--;
-    }
-
     function approveOrder (uint productId, uint orderId) external {
         require(msg.sender == merchant, "Caller not Merchant");
         require(!orders[productId][orderId].accepted, "Already accepted");
@@ -112,9 +104,13 @@ contract Market {
 
         require(orders[productId][orderId].quantity <= products[productId].quantity, "Insufficient stock to accept order");
         products[productId].quantity -= orders[productId][orderId].quantity;
+
+        // Update Bank
+        Bank bank = Bank(bankAddress);
+        bank.acceptOrderEth(productId, orderId);
     }
 
-    // Manual Management functions
+    // Management functions
 
     function updateMarketName (string memory _name) external 
     {
@@ -140,10 +136,11 @@ contract Market {
         products[productId].region = region;
     }
 
-    // Customer functions
-
-    function purchaseWithEth(uint productId, string memory encryptedAddress, uint32 quantity, uint8 region, address arbitrator) external payable
-    {        
+    // Bank functions
+    
+    function recieveOrderEth(address payable customer, uint productId, string memory encryptedAddress, uint32 quantity, uint value, uint8 currency, uint8 region, address arbitrator) external {
+        require(msg.sender == bankAddress, "SunflowerV1/FORBIDDEN");
+        require(products[productId].currency == 0, "Ethereum Not Accepted");
         require(products[productId].quantity >= quantity, "Insufficient stock");
 
         uint price = products[productId].price;
@@ -169,12 +166,12 @@ contract Market {
 
         Order memory order = Order(
             false,
-            payable(msg.sender),
+            customer,
             productId,
             encryptedAddress,
             quantity,
-            cost,
-            products[productId].currency,
+            value,
+            0,
             region,
             arbitrator
         );
@@ -182,50 +179,11 @@ contract Market {
         orders[productId].push(order);
         totalOrders[productId]++;
     }
-    
-    function releaseEscrow (uint productId, uint orderId, uint dst) external 
-    {
-        // dst => 0: Buyer 1: Merchant
-        require (dst == 0 || dst == 1, "Invalid Destination");
-        require (orders[productId][orderId].accepted, "Not yet accepted"); // Neither buyer or merchant can release before accepted
 
-        if ((msg.sender == orders[productId][orderId].customer || msg.sender == orders[productId][orderId].arbitrator) && dst == 1) { // Buyer can release to Merchant
-            bool sent = payable(merchant).send(orders[productId][orderId].escrowAmount);
-            require(sent == true, "Transfer failed");
-
-            // Enable Reviews
-            Rating rating = Rating(ratingAddress);
-            rating.mayReview(address(this), productId, merchant, orders[productId][orderId].customer, orders[productId][orderId].arbitrator, orderId);
-
-            delete orders[productId][orderId];
-            totalOrders[productId]--;
-        }
-
-        if ((msg.sender == merchant || msg.sender == orders[productId][orderId].arbitrator) && dst == 0) { // Merchant can release to Buyer
-            bool sent = orders[productId][orderId].customer.send(orders[productId][orderId].escrowAmount);
-            require(sent == true, "Transfer failed");
-
-            // Enable Reviews
-            Rating rating = Rating(ratingAddress);
-            rating.mayReview(address(this), productId, merchant, orders[productId][orderId].customer, orders[productId][orderId].arbitrator, orderId);
-
-            delete orders[productId][orderId];
-            totalOrders[productId]--;
-        }
-        
-        revert("Caller not party");
-    }
-
-    function revokeEscrow (uint productId, uint orderId) external 
-    {
-        require(msg.sender == orders[productId][orderId].customer, "Caller not customer");
-        require(!orders[productId][orderId].accepted, "Already accepted");
-
-        bool sent = orders[productId][orderId].customer.send(orders[productId][orderId].escrowAmount);
-        require(sent == true, "Tranfer failed");
+    function deleteOrder(uint productId, uint orderId) external {
+        require(msg.sender == bankAddress, "Sunflower-V1/FORBIDDEN");
         
         delete orders[productId][orderId];
         totalOrders[productId]--;
     }
-    
 }   

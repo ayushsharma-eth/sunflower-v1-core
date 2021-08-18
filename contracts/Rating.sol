@@ -2,17 +2,19 @@
 pragma solidity >=0.8.6;
 
 import "./MarketFactory.sol";
+import "./Bank.sol";
 
 // Stores rating 
 contract Rating {
 
-    address public marketFactoryAddress;
+    address public bankAddress;
 
     constructor
     (
-        address _marketFactoryAddress
-    ) {
-        marketFactoryAddress = _marketFactoryAddress;
+        address _bankAddress
+    ) 
+    {
+        bankAddress = _bankAddress;
     }
 
     struct Review {
@@ -43,9 +45,7 @@ contract Rating {
     }
 
     function mayReview(address market, uint product, address merchant, address buyer, address arbitrator, uint order) external {
-        require(msg.sender == market, "Sunflower-V1/FORBIDDEN");
-        MarketFactory MF = MarketFactory(marketFactoryAddress);
-        require(MF.isMarket(market), "Sunflower-V1/FORBIDDEN");
+        require(msg.sender == bankAddress, "Sunflower-V1/FORBIDDEN");
 
         if(arbitrator != address(0))
         {
