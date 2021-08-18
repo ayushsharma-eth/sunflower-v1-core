@@ -1,3 +1,4 @@
+//SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.6;
 
 import "./interfaces/IERC20.sol";
@@ -100,7 +101,7 @@ contract Bank {
         ethBalance[msg.sender] -= amount;
     }
 
-    function depositEth (address target) external {
+    function depositEth (address target) external payable {
         ethBalance[target] += msg.value;
     }
 

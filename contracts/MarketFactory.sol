@@ -1,4 +1,4 @@
-//SPDX-License-Identifier: MIT
+//SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.6;
 
 import "./interfaces/IMarketFactory.sol";
@@ -9,6 +9,7 @@ contract MarketFactory {
     address public ratingAddress;
     address public deployerAddress;
     address public mediationAddress;
+    address public bankAddress;
 
     constructor () {
         deployerAddress = msg.sender;
@@ -22,7 +23,7 @@ contract MarketFactory {
 
     function createMarket (string memory _name) external
     {
-        Market market = new Market(_name, msg.sender, ratingAddress, mediationAddress);
+        Market market = new Market(_name, msg.sender, ratingAddress, mediationAddress, bankAddress);
         markets[msg.sender].push(address(market));
         //merchants[address(market)] = msg.sender;
         allMarkets.push(address(market));
@@ -49,5 +50,10 @@ contract MarketFactory {
     function updateMediationAddress (address _mediationAddress) external {
         require(msg.sender == deployerAddress, "Sunflower-V1/FORBIDDEN");
         mediationAddress = _mediationAddress;
+    }
+
+    function updateBankAddress (address _bankAddress) external {
+        require(msg.sender == deployerAddress, "Sunflower-V1/FORBIDDEN");
+        bankAddress = _bankAddress;
     }
 }

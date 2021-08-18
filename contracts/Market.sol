@@ -1,4 +1,4 @@
-//SPDX-License-Identifier: MIT
+//SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.6;
 
 import "./interfaces/IMarket.sol";
@@ -138,7 +138,7 @@ contract Market {
 
     // Bank functions
     
-    function recieveOrderEth(address payable customer, uint productId, string memory encryptedAddress, uint32 quantity, uint value, uint8 currency, uint8 region, address arbitrator) external {
+    function recieveOrderEth(address payable customer, uint productId, string memory encryptedAddress, uint32 quantity, uint value, uint8 region, address arbitrator) external {
         require(msg.sender == bankAddress, "SunflowerV1/FORBIDDEN");
         require(products[productId].currency == 0, "Ethereum Not Accepted");
         require(products[productId].quantity >= quantity, "Insufficient stock");
@@ -146,7 +146,7 @@ contract Market {
         uint price = products[productId].price;
         uint cost = price * quantity;
          
-        require(msg.value == cost, "Incorrect Amount Sent");
+        require(value == cost, "Incorrect Amount Sent");
 
         bool matchRegion = false;
         for (uint i = 0; i < products[productId].region.length; i++)

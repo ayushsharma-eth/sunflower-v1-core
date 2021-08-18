@@ -1,3 +1,4 @@
+//SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.6;
 
 import "./interfaces/IERC20.sol";
@@ -20,13 +21,14 @@ contract ERC20Basic is IERC20 {
     using SafeMath for uint256;
 
 
-   constructor(uint256 total) public {
-    totalSupply_ = total;
-    balances[msg.sender] = totalSupply_;
+    constructor(uint256 total) 
+    {
+        totalSupply_ = total;
+        balances[msg.sender] = totalSupply_;
     }
 
     function totalSupply() public override view returns (uint256) {
-    return totalSupply_;
+        return totalSupply_;
     }
 
     function balanceOf(address tokenOwner) public override view returns (uint256) {
