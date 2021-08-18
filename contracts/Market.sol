@@ -186,7 +186,7 @@ contract Market {
     function releaseEscrow (uint productId, uint orderId, uint dst) external 
     {
         // dst => 0: Buyer 1: Merchant
-
+        require (dst == 0 || dst == 1, "Invalid Destination");
         require (orders[productId][orderId].accepted, "Not yet accepted"); // Neither buyer or merchant can release before accepted
 
         if ((msg.sender == orders[productId][orderId].customer || msg.sender == orders[productId][orderId].arbitrator) && dst == 1) { // Buyer can release to Merchant
