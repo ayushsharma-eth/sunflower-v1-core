@@ -183,20 +183,37 @@ contract Market {
         totalOrders[productId]++;
     }
     
-    function releaseEscrow (uint productId, uint orderId) external 
+    function releaseEscrow (uint productId, uint orderId, uint dst) external 
     {
+        // dst => 0: Buyer 1: Merchant
+
         require (orders[productId][orderId].accepted, "Not yet accepted"); // Neither buyer or merchant can release before accepted
-        require (msg.sender == orders[productId][orderId].customer || msg.sender == merchant, "Caller not customer or merchant");
 
-        bool sent = payable(merchant).send(orders[productId][orderId].escrowAmount);
-        require(sent == true, "Transfer failed");
+        if ((msg.sender == orders[productId][orderId].customer || msg.sender == orders[productId][orderId].arbitrator) && dst == 1) { // Buyer can release to Merchant
+            bool sent = payable(merchant).send(orders[productId][orderId].escrowAmount);
+            require(sent == true, "Transfer failed");
+
+            // Enable Reviews
+            Rating rating = Rating(ratingAddress);
+            rating.mayReview(address(this), productId, merchant, orders[productId][orderId].customer, orders[productId][orderId].arbitrator, orderId);
+
+            delete orders[productId][orderId];
+            totalOrders[productId]--;
+        }
+
+        if ((msg.sender == merchant || msg.sender == orders[productId][orderId].arbitrator) && dst == 0) { // Merchant can release to Buyer
+            bool sent = orders[productId][orderId].customer.send(orders[productId][orderId].escrowAmount);
+            require(sent == true, "Transfer failed");
+
+            // Enable Reviews
+            Rating rating = Rating(ratingAddress);
+            rating.mayReview(address(this), productId, merchant, orders[productId][orderId].customer, orders[productId][orderId].arbitrator, orderId);
+
+            delete orders[productId][orderId];
+            totalOrders[productId]--;
+        }
         
-        // Enable Reviews
-        Rating rating = Rating(ratingAddress);
-        rating.mayReview(address(this), productId, merchant, orders[productId][orderId].customer, orders[productId][orderId].arbitrator, orderId);
-
-        delete orders[productId][orderId];
-        totalOrders[productId]--;
+        revert("Caller not party");
     }
 
     function revokeEscrow (uint productId, uint orderId) external 
