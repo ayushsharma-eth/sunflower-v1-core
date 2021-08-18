@@ -2,6 +2,7 @@ pragma solidity >=0.8.6;
 
 import "./interfaces/IERC20.sol";
 import "./MarketFactory.sol";
+import "./Bank.sol";
 
 contract Mediation {
 
@@ -9,14 +10,18 @@ contract Mediation {
     address public marketFactoryAddress;
     uint public minStakingRequirement;
 
+    address public bankAddress;
+
     constructor(
         address _tokenAddress,
         address _marketFactoryAddress,
-        uint _minStakingRequirement
+        uint _minStakingRequirement,
+        address _bankAddress
     ) {
         tokenAddress = _tokenAddress;
         marketFactoryAddress = _marketFactoryAddress;
         minStakingRequirement = _minStakingRequirement;
+        bankAddress = _bankAddress;
     }
 
     mapping(address => Arbitrator) public arbitrators;
@@ -27,24 +32,15 @@ contract Mediation {
         uint timer;
     }
 
-    // Must approve this contract first with desired amount to stake
-    function stake(address arbitrator, uint amount) external payable {
-        require(amount > 0, "Amount must be greater than zero");
-        IERC20 Token = IERC20(tokenAddress);
-        uint256 allowance = Token.allowance(msg.sender, address(this));
-        require(allowance >= amount, "Amount higher than allowance");
-        Token.transferFrom(msg.sender, address(this), amount);
-        arbitrators[arbitrator].escrowAmount += amount;
-    }
-
     function join() external 
     {
         require(!arbitrators[msg.sender].isArbitrator, "Already Arbitrator");
-        require(arbitrators[msg.sender].escrowAmount >= minStakingRequirement, "Insufficient stake");
+
+        Bank bank = Bank(bankAddress);
+        require(bank.stakedBalance(msg.sender) >= minStakingRequirement, "Insufficient stake");
 
         arbitrators[msg.sender].isArbitrator = true;
     }
-
 
     function resetTimer(address arbitrator) external {
         MarketFactory MF = MarketFactory(marketFactoryAddress);
@@ -60,28 +56,17 @@ contract Mediation {
         arbitrators[arbitrator].isArbitrator = false; // Can no longer be assigned new orders
     }
 
-    function unstake(uint amount, address arbitrator) external {
-        require(amount > 0, "Amount must be greater than zero");
-        require(msg.sender == arbitrator, "Not specified Arbitrator");
-        require(amount <= arbitrators[arbitrator].escrowAmount, "Insufficient stake");
-        
-        IERC20 Token = IERC20(tokenAddress);
-
-        if (arbitrators[arbitrator].escrowAmount - amount >= minStakingRequirement)
-        {
-            Token.transfer(msg.sender, amount);
-            arbitrators[arbitrator].escrowAmount -= amount;
-        }
-        else
-        {
-            require(block.timestamp >= arbitrators[arbitrator].timer, "Cooldown still active");
-            Token.transfer(msg.sender, amount);
-            arbitrators[arbitrator].escrowAmount -= amount;
-            if (arbitrators[arbitrator].isArbitrator) arbitrators[arbitrator].isArbitrator == false;
-        }
+    function fire (address addr) external {
+        require(msg.sender == bankAddress, "Sunflower-V1/FORBIDDEN");
+        arbitrators[addr].isArbitrator = false; // Can no longer be assigned new orders
     }
 
     function isArbitrator (address addr) external view returns (bool) {
         return arbitrators[addr].isArbitrator;
     }
+
+    function isCooldownActive (address addr) external view returns (bool) {
+        return block.timestamp >= arbitrators[addr].timer;
+    }
+
 }

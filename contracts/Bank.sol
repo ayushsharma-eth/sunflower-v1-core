@@ -1,20 +1,28 @@
 pragma solidity >=0.8.6;
 
+import "./interfaces/IERC20.sol";
+import "./Mediation.sol";
 import "./Market.sol";
 
 contract Bank {
     
+    address public tokenAddress;
     address public marketFactoryAddress;
     address public ratingAddress;
+    address public mediationAddress;
 
     constructor
     (
+        address _tokenAddress,
         address _marketFactoryAddress,
-        address _ratingAddress
+        address _ratingAddress,
+        address _mediationAddress
     )
     {
+        tokenAddress = _tokenAddress;
         marketFactoryAddress = _marketFactoryAddress;
         ratingAddress = _ratingAddress;
+        mediationAddress = _mediationAddress;
     }
 
     struct Escrow {
@@ -25,12 +33,61 @@ contract Bank {
         uint escrowAmount;
     }
 
-    mapping(address => uint) public sunBalance; // Unstaked suns
-    mapping(address => uint) public stakedBalance;
+    mapping(address => uint) public sunBalance; // Unstaked suns (such as rewards)
+    mapping(address => uint) public stakedBalance; // Staked suns
     mapping(address => uint) public ethBalance;
     mapping(address => uint) public daiBalance;
     mapping(address => mapping(uint => mapping(uint => Escrow))) public ethEscrow; // [marketAddress][productId][orderId] = Escrow struct
     mapping(address => mapping(uint => mapping(uint => Escrow))) public daiEscrow;
+
+    // Staking Functions
+
+    // Must approve this contract first with desired amount to stake
+    function stake(uint amount) external payable {
+        require(amount > 0, "Amount must be greater than zero");
+        IERC20 Token = IERC20(tokenAddress);
+        uint256 allowance = Token.allowance(msg.sender, address(this));
+        require(allowance >= amount, "Amount higher than allowance");
+        Token.transferFrom(msg.sender, address(this), amount);
+        stakedBalance[msg.sender] += amount;
+    }
+
+    function unstake(uint amount) external {
+        require(amount > 0, "Amount must be greater than zero");
+        require(amount <= ethBalance[msg.sender], "Insufficient stake");
+        
+        IERC20 Token = IERC20(tokenAddress);
+
+        // Check if Arbitrator
+        Mediation mediation = Mediation(mediationAddress);
+        if (mediation.isArbitrator(msg.sender))
+        {
+            uint minStakingRequirement = mediation.minStakingRequirement();
+            if (ethBalance[msg.sender] - amount >= minStakingRequirement)
+            {
+                // Add check for justice
+                Token.transfer(msg.sender, amount);
+                ethBalance[msg.sender] -= amount;
+                return;
+            }
+            else
+            {
+                require(!mediation.isCooldownActive(msg.sender), "Cooldown still active");
+                Token.transfer(msg.sender, amount);
+                ethBalance[msg.sender] -= amount;
+                if (mediation.isArbitrator(msg.sender)) mediation.fire(msg.sender);
+                return;
+            }
+        }
+
+        // Add check for justice
+
+
+        // Else
+        
+        Token.transfer(msg.sender, amount);
+        ethBalance[msg.sender] -= amount;
+    }
 
     // Deposit/Withdraw Functions
 
