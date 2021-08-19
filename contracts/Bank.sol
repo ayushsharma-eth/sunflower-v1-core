@@ -57,7 +57,7 @@ contract Bank {
 
     function stakeFromSunBalance(uint amount) external payable {
         require(amount > 0, "Amount must be greater than zero");
-        require(amount >= sunBalance[msg.sender], "Insufficient Balance");
+        require(amount <= sunBalance[msg.sender], "Insufficient Balance");
         sunBalance[msg.sender] -= amount;
         stakedBalance[msg.sender] += amount;
     }
@@ -109,7 +109,7 @@ contract Bank {
 
     function withdrawSun (uint amount) external {
         require(amount > 0, "Amount must be greater than zero");
-        require(amount >= sunBalance[msg.sender], "Insufficient Balance");
+        require(amount <= sunBalance[msg.sender], "Insufficient Balance");
         IERC20 Token = IERC20(tokenAddress);
         Token.transfer(msg.sender, amount);
     }
