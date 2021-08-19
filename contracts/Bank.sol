@@ -55,11 +55,17 @@ contract Bank {
         stakedBalance[msg.sender] += amount;
     }
 
+    function stakeFromSunBalance(uint amount) external payable {
+        require(amount > 0, "Amount must be greater than zero");
+        require(amount >= sunBalance[msg.sender], "Insufficient Balance");
+        sunBalance[msg.sender] -= amount;
+        stakedBalance[msg.sender] += amount;
+    }
+
     function unstake(uint amount) external {
         require(amount > 0, "Amount must be greater than zero");
         require(amount <= stakedBalance[msg.sender], "Insufficient stake");
         
-        IERC20 Token = IERC20(tokenAddress);
         Mediation mediation = Mediation(mediationAddress);
         Appeal appeal = Appeal(appealAddress);
 
@@ -67,8 +73,8 @@ contract Bank {
         if (mediation.isArbitrator(msg.sender) || mediation.isCooldownActive(msg.sender)) {
             uint arbitratorStakingRequirement = mediation.minStakingRequirement();
             require (stakedBalance[msg.sender] - amount >= arbitratorStakingRequirement, "Amount would violate minstakingrequirement");
-            Token.transfer(msg.sender, amount);
             stakedBalance[msg.sender] -= amount;
+            sunBalance[msg.sender] += amount;
             return;
         }
 
@@ -76,16 +82,16 @@ contract Bank {
         if (appeal.isJustice(msg.sender) || appeal.isCooldownActive(msg.sender)) {
             uint justiceStakingRequirement = appeal.minStakingRequirement();
             require (stakedBalance[msg.sender] - amount >= justiceStakingRequirement, "Amount would violate minstakingrequirement");
-            Token.transfer(msg.sender, amount);
             stakedBalance[msg.sender] -= amount;
+            sunBalance[msg.sender] += amount;
             return;
         }
 
 
         // Else (if cooldowns are not active AND not currently Arbitrator nor Justice)
 
-        Token.transfer(msg.sender, amount);
         stakedBalance[msg.sender] -= amount;
+        sunBalance[msg.sender] += amount;
     }
 
     // Deposit/Withdraw Functions
@@ -99,6 +105,22 @@ contract Bank {
 
     function depositEth (address target) external payable {
         ethBalance[target] += msg.value;
+    }
+
+    function withdrawSun (uint amount) external {
+        require(amount > 0, "Amount must be greater than zero");
+        require(amount >= sunBalance[msg.sender], "Insufficient Balance");
+        IERC20 Token = IERC20(tokenAddress);
+        Token.transfer(msg.sender, amount);
+    }
+
+    function depositSun (uint amount) external {
+        require(amount > 0, "Amount must be greater than zero");
+        IERC20 Token = IERC20(tokenAddress);
+        uint256 allowance = Token.allowance(msg.sender, address(this));
+        require(allowance >= amount, "Amount higher than allowance");
+        Token.transferFrom(msg.sender, address(this), amount);
+        sunBalance[msg.sender] += amount;
     }
 
     // Market Functions
