@@ -59,6 +59,6 @@ contract Appeal {
     }
 
     function isCooldownActive (address addr) external view returns (bool) {
-        return block.timestamp >= justices[addr].timer;
+        return block.timestamp < justices[addr].timer;
     }
 }

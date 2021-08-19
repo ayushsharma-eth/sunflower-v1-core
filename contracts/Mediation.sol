@@ -74,7 +74,7 @@ contract Mediation {
     }
 
     function isCooldownActive (address addr) external view returns (bool) {
-        return block.timestamp >= arbitrators[addr].timer;
+        return block.timestamp < arbitrators[addr].timer;
     }
 
     function updateAppealAddress (address _appealAddress) external {
