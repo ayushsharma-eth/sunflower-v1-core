@@ -8,6 +8,7 @@ import "./Bank.sol";
 
 contract Mediation {
 
+    address public deployerAddress;
     address public appealAddress;
     address public tokenAddress;
     address public marketFactoryAddress;
@@ -16,14 +17,13 @@ contract Mediation {
     address public bankAddress;
 
     constructor(
-        address _appealAddress,
         address _tokenAddress,
         address _marketFactoryAddress,
         uint _minStakingRequirement,
         address _bankAddress
     ) 
     {
-        appealAddress = _appealAddress;
+        deployerAddress = msg.sender;
         tokenAddress = _tokenAddress;
         marketFactoryAddress = _marketFactoryAddress;
         minStakingRequirement = _minStakingRequirement;
@@ -75,6 +75,11 @@ contract Mediation {
 
     function isCooldownActive (address addr) external view returns (bool) {
         return block.timestamp >= arbitrators[addr].timer;
+    }
+
+    function updateAppealAddress (address _appealAddress) external {
+        require(msg.sender == deployerAddress, "Sunflower-V1/FORBIDDEN");
+        appealAddress = _appealAddress;
     }
 
 }

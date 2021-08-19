@@ -15,21 +15,17 @@ contract Bank {
     address public ratingAddress;
     address public mediationAddress;
     address public appealAddress;
+    address public deployerAddress;
 
     constructor
     (
         address _tokenAddress,
-        address _marketFactoryAddress,
-        address _ratingAddress,
-        address _mediationAddress,
-        address _appealAddress
+        address _marketFactoryAddress
     )
     {
         tokenAddress = _tokenAddress;
         marketFactoryAddress = _marketFactoryAddress;
-        ratingAddress = _ratingAddress;
-        mediationAddress = _mediationAddress;
-        appealAddress = _appealAddress;
+        deployerAddress = msg.sender;
     }
 
     struct Escrow {
@@ -61,7 +57,7 @@ contract Bank {
 
     function unstake(uint amount) external {
         require(amount > 0, "Amount must be greater than zero");
-        require(amount <= ethBalance[msg.sender], "Insufficient stake");
+        require(amount <= stakedBalance[msg.sender], "Insufficient stake");
         
         IERC20 Token = IERC20(tokenAddress);
         Mediation mediation = Mediation(mediationAddress);
@@ -70,18 +66,18 @@ contract Bank {
         // Check if Arbitrator
         if (mediation.isArbitrator(msg.sender) || mediation.isCooldownActive(msg.sender)) {
             uint arbitratorStakingRequirement = mediation.minStakingRequirement();
-            require (ethBalance[msg.sender] - amount >= arbitratorStakingRequirement, "Amount would violate minstakingrequirement");
+            require (stakedBalance[msg.sender] - amount >= arbitratorStakingRequirement, "Amount would violate minstakingrequirement");
             Token.transfer(msg.sender, amount);
-            ethBalance[msg.sender] -= amount;
+            stakedBalance[msg.sender] -= amount;
             return;
         }
 
         // Check if Justice
         if (appeal.isJustice(msg.sender) || appeal.isCooldownActive(msg.sender)) {
             uint justiceStakingRequirement = appeal.minStakingRequirement();
-            require (ethBalance[msg.sender] - amount >= justiceStakingRequirement, "Amount would violate minstakingrequirement");
+            require (stakedBalance[msg.sender] - amount >= justiceStakingRequirement, "Amount would violate minstakingrequirement");
             Token.transfer(msg.sender, amount);
-            ethBalance[msg.sender] -= amount;
+            stakedBalance[msg.sender] -= amount;
             return;
         }
 
@@ -89,7 +85,7 @@ contract Bank {
         // Else (if cooldowns are not active AND not currently Arbitrator nor Justice)
 
         Token.transfer(msg.sender, amount);
-        ethBalance[msg.sender] -= amount;
+        stakedBalance[msg.sender] -= amount;
     }
 
     // Deposit/Withdraw Functions
@@ -113,7 +109,7 @@ contract Bank {
         require(MF.isMarket(marketAddress), "Invalid Market Address");
 
         Market market = Market(marketAddress);
-        market.recieveOrderEth(payable(msg.sender), productId, encryptedAddress, quantity, msg.value, 0, region, arbitrator);
+        market.recieveOrderEth(payable(msg.sender), productId, encryptedAddress, quantity, msg.value, region, arbitrator);
 
         // Order was valid if they got this far
         address merchant = market.merchant();
@@ -172,5 +168,21 @@ contract Bank {
         Market market = Market(marketAddress);
         market.deleteOrder(productId, orderId);
     }
+
+    function updateRatingAddress(address _ratingAddress) external {
+        require(msg.sender == deployerAddress, "Sunflower-V1/FORBIDDEN");
+        ratingAddress = _ratingAddress;
+    }
+
+    function updateMediationAddress(address _mediationAddress) external {
+        require(msg.sender == deployerAddress, "Sunflower-V1/FORBIDDEN");
+        mediationAddress = _mediationAddress;
+    }
+
+    function updateAppealAddress(address _appealAddress) external {
+        require(msg.sender == deployerAddress, "Sunflower-V1/FORBIDDEN");
+        appealAddress = _appealAddress;
+    }
+
 
 }
