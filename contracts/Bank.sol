@@ -112,6 +112,7 @@ contract Bank {
         require(amount <= sunBalance[msg.sender], "Insufficient Balance");
         IERC20 Token = IERC20(tokenAddress);
         Token.transfer(msg.sender, amount);
+        sunBalance[msg.sender] -= amount;
     }
 
     function depositSun (uint amount) external {
