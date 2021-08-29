@@ -153,7 +153,7 @@ contract Market {
         {
             if (products[productId].region[i] == region)
             {
-                matchRegion == true;
+                matchRegion = true;
                 break;
             }
         }

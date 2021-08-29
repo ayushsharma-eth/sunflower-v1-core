@@ -207,5 +207,4 @@ contract Bank {
         appealAddress = _appealAddress;
     }
 
-
 }
