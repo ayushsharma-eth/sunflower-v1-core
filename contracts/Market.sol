@@ -65,6 +65,12 @@ contract Market {
     event ProductCreated(string name, uint32 quantity, uint price, uint8 currency, uint8[] _region, uint8[] _category, uint index);
     event ProductDeleted(string name, uint index);
 
+    // Return Functions
+
+    function returnOrders (uint productId) external view returns (Order[] memory) {
+        return orders[productId];
+    }
+
     function returnCategory (uint productId) external view returns (uint8[] memory) {
         return products[productId].category;
     }
